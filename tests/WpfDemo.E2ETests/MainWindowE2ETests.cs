@@ -1,50 +1,40 @@
 using FlaUI.Core.Tools;
 using NUnit.Framework;
-using WpfDemo.E2ETests.Infrastructure;
 
 namespace WpfDemo.E2ETests;
 
 [TestFixture]
 [NonParallelizable]
-public class MainWindowE2ETests
+public class MainWindowE2ETests : E2ETestBase
 {
     [Test]
     public void Window_opens_with_title_and_default_greeting()
     {
-        using var session = WpfDemoAppSession.Launch();
-        var main = session.OpenMainWindow();
-
-        Assert.That(main.Title, Is.EqualTo("Mini Shop Admin"));
-        Assert.That(main.Greeting, Does.Contain("Enter a name"));
+        Assert.That(Main.Title, Is.EqualTo("Mini Shop Admin"));
+        Assert.That(Main.Greeting, Does.Contain("Enter a name"));
     }
 
     [Test]
     public void Clicking_say_hello_without_name_shows_validation_message()
     {
-        using var session = WpfDemoAppSession.Launch();
-        var main = session.OpenMainWindow();
-
-        main.SayHello();
+        Main.SayHello();
 
         Retry.WhileFalse(
-            () => main.Greeting.Contains("Please enter a name", StringComparison.Ordinal),
+            () => Main.Greeting.Contains("Please enter a name", StringComparison.Ordinal),
             TimeSpan.FromSeconds(3));
 
-        Assert.That(main.Greeting, Does.Contain("Please enter a name"));
+        Assert.That(Main.Greeting, Does.Contain("Please enter a name"));
     }
 
     [Test]
     public void Entering_name_and_clicking_say_hello_updates_greeting()
     {
-        using var session = WpfDemoAppSession.Launch();
-        var main = session.OpenMainWindow();
-
-        main.SetAdminName("FlaUI").SayHello();
+        Main.SetAdminName("FlaUI").SayHello();
 
         Retry.WhileFalse(
-            () => main.Greeting == "Hello, FlaUI!",
+            () => Main.Greeting == "Hello, FlaUI!",
             TimeSpan.FromSeconds(3));
 
-        Assert.That(main.Greeting, Is.EqualTo("Hello, FlaUI!"));
+        Assert.That(Main.Greeting, Is.EqualTo("Hello, FlaUI!"));
     }
 }

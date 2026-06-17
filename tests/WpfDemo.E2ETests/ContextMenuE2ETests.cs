@@ -1,17 +1,15 @@
 using NUnit.Framework;
-using WpfDemo.E2ETests.Infrastructure;
 
 namespace WpfDemo.E2ETests;
 
 [TestFixture]
 [NonParallelizable]
-public class ContextMenuE2ETests
+public class ContextMenuE2ETests : E2ETestBase
 {
     [Test]
     public void Remove_product_via_context_menu()
     {
-        using var session = WpfDemoAppSession.Launch();
-        var catalog = session.OpenMainWindow().OpenCatalog();
+        var catalog = Main.OpenCatalog();
 
         catalog
             .RemoveProductViaContextMenu("Mug - $12.00")
@@ -24,8 +22,7 @@ public class ContextMenuE2ETests
     [Test]
     public void Duplicate_product_via_context_menu()
     {
-        using var session = WpfDemoAppSession.Launch();
-        var catalog = session.OpenMainWindow().OpenCatalog();
+        var catalog = Main.OpenCatalog();
 
         catalog
             .DuplicateProductViaContextMenu("Coffee - $4.50")
@@ -38,8 +35,7 @@ public class ContextMenuE2ETests
     [Test]
     public void Mark_featured_via_context_menu_updates_list_item()
     {
-        using var session = WpfDemoAppSession.Launch();
-        var catalog = session.OpenMainWindow().OpenCatalog();
+        var catalog = Main.OpenCatalog();
 
         catalog
             .MarkFeaturedViaContextMenu("Coffee - $4.50")
