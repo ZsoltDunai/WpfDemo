@@ -24,5 +24,15 @@ public abstract class E2ETestBase
     {
         Session.Dispose();
     }
+
+    protected void AssertWindowClosed(string title)
+    {
+        Assert.That(Session.FindWindowByTitle(title), Is.Null);
+    }
+
+    protected void AssertWindowOpen(string title)
+    {
+        Assert.That(Session.FindWindowByTitle(title), Is.Not.Null);
+    }
 }
 

@@ -1,4 +1,3 @@
-using FlaUI.Core.Tools;
 using NUnit.Framework;
 
 namespace WpfDemo.E2ETests;
@@ -39,9 +38,7 @@ public class CatalogE2ETests : E2ETestBase
         catalog.AddProduct("Notebook", "6.25").WaitUntilProductCount(3);
         catalog.Close();
 
-        Retry.WhileFalse(
-            () => Main.ProductSummary == "Products in catalog: 3",
-            TimeSpan.FromSeconds(3));
+        Main.WaitUntilProductSummary("Products in catalog: 3");
 
         Assert.That(Main.ProductSummary, Is.EqualTo("Products in catalog: 3"));
     }

@@ -1,4 +1,3 @@
-using FlaUI.Core.Tools;
 using NUnit.Framework;
 
 namespace WpfDemo.E2ETests;
@@ -10,15 +9,7 @@ public class MultiWindowE2ETests : E2ETestBase
     [Test]
     public void Saving_settings_updates_greeting_on_main_window()
     {
-        Main.OpenSettings()
-            .SetGreetingPrefix("Welcome")
-            .Save()
-            .SetAdminName("FlaUI")
-            .SayHello();
-
-        Retry.WhileFalse(
-            () => Main.Greeting == "Welcome, FlaUI!",
-            TimeSpan.FromSeconds(3));
+        Main.UpdateGreetingPrefix("Welcome").GreetAs("FlaUI", "Welcome, FlaUI!");
 
         Assert.That(Main.Greeting, Is.EqualTo("Welcome, FlaUI!"));
     }
@@ -26,15 +17,7 @@ public class MultiWindowE2ETests : E2ETestBase
     [Test]
     public void Cancelling_settings_keeps_default_greeting_prefix()
     {
-        Main.OpenSettings()
-            .SetGreetingPrefix("Changed")
-            .Cancel()
-            .SetAdminName("Tester")
-            .SayHello();
-
-        Retry.WhileFalse(
-            () => Main.Greeting == "Hello, Tester!",
-            TimeSpan.FromSeconds(3));
+        Main.UpdateGreetingPrefix("Changed", save: false).GreetAs("Tester", "Hello, Tester!");
 
         Assert.That(Main.Greeting, Is.EqualTo("Hello, Tester!"));
     }
@@ -48,8 +31,8 @@ public class MultiWindowE2ETests : E2ETestBase
 
         about.CloseAbout();
 
-        Assert.That(Session.FindWindowByTitle("About"), Is.Null);
-        Assert.That(Session.FindWindowByTitle("Mini Shop Admin"), Is.Not.Null);
+        AssertWindowClosed("About");
+        AssertWindowOpen("Mini Shop Admin");
         Assert.That(Main.Title, Is.EqualTo("Mini Shop Admin"));
     }
 
@@ -65,13 +48,13 @@ public class MultiWindowE2ETests : E2ETestBase
 
         about.CloseAbout();
 
-        Assert.That(Session.FindWindowByTitle("Settings"), Is.Not.Null);
-        Assert.That(Session.FindWindowByTitle("Mini Shop Admin"), Is.Not.Null);
+        AssertWindowOpen("Settings");
+        AssertWindowOpen("Mini Shop Admin");
 
         settings.Cancel();
 
-        Assert.That(Session.FindWindowByTitle("Settings"), Is.Null);
-        Assert.That(Session.FindWindowByTitle("About"), Is.Null);
-        Assert.That(Session.FindWindowByTitle("Mini Shop Admin"), Is.Not.Null);
+        AssertWindowClosed("Settings");
+        AssertWindowClosed("About");
+        AssertWindowOpen("Mini Shop Admin");
     }
 }

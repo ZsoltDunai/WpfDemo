@@ -1,4 +1,5 @@
 using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Tools;
 using NUnit.Framework;
 using WpfDemo.E2ETests.Infrastructure;
 
@@ -24,6 +25,44 @@ public sealed class MainWindowObject : WindowObjectBase
     public MainWindowObject SayHello()
     {
         ClickButton("GreetButton");
+        return this;
+    }
+
+    public MainWindowObject GreetAs(string name, string expectedGreeting)
+    {
+        return SetAdminName(name).SayHello().WaitUntilGreeting(expectedGreeting);
+    }
+
+    public MainWindowObject SayHelloExpecting(string expectedGreeting)
+    {
+        return SayHello().WaitUntilGreeting(expectedGreeting);
+    }
+
+    public MainWindowObject UpdateGreetingPrefix(string prefix, bool save = true)
+    {
+        var settings = OpenSettings().SetGreetingPrefix(prefix);
+        return save ? settings.Save() : settings.Cancel();
+    }
+
+    public MainWindowObject WaitUntilGreeting(string expectedGreeting, TimeSpan? timeout = null)
+    {
+        timeout ??= TimeSpan.FromSeconds(3);
+
+        Retry.WhileFalse(
+            () => Greeting == expectedGreeting,
+            timeout.Value);
+
+        return this;
+    }
+
+    public MainWindowObject WaitUntilProductSummary(string expectedSummary, TimeSpan? timeout = null)
+    {
+        timeout ??= TimeSpan.FromSeconds(3);
+
+        Retry.WhileFalse(
+            () => ProductSummary == expectedSummary,
+            timeout.Value);
+
         return this;
     }
 
