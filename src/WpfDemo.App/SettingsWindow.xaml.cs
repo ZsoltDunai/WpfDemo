@@ -1,21 +1,26 @@
 using System.Windows;
 using System.Windows.Automation;
+using WpfDemo.App.Services;
 
 namespace WpfDemo.App;
 
 public partial class SettingsWindow : Window
 {
-    public SettingsWindow()
+    private readonly IAppSettingsService _appSettings;
+
+    public SettingsWindow(IAppSettingsService appSettings)
     {
+        _appSettings = appSettings;
+
         InitializeComponent();
         AutomationProperties.SetAutomationId(this, "SettingsWindow");
-        GreetingPrefixTextBox.Text = AppSettings.GreetingPrefix;
+        GreetingPrefixTextBox.Text = _appSettings.GreetingPrefix;
     }
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {
         var prefix = GreetingPrefixTextBox.Text.Trim();
-        AppSettings.GreetingPrefix = string.IsNullOrWhiteSpace(prefix) ? "Hello" : prefix;
+        _appSettings.GreetingPrefix = string.IsNullOrWhiteSpace(prefix) ? "Hello" : prefix;
         Close();
     }
 

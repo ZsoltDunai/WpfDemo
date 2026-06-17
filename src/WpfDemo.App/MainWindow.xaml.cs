@@ -1,16 +1,28 @@
 ﻿using System.Windows;
 using System.Windows.Automation;
+using WpfDemo.App.Services;
 
 namespace WpfDemo.App;
 
 public partial class MainWindow : Window
 {
+    private readonly IAppSettingsService _appSettings;
+    private readonly IProductCatalogService _productCatalog;
+    private readonly IWindowFactory _windowFactory;
+
     private SettingsWindow? _settingsWindow;
     private AboutWindow? _aboutWindow;
     private CatalogWindow? _catalogWindow;
 
-    public MainWindow()
+    public MainWindow(
+        IAppSettingsService appSettings,
+        IProductCatalogService productCatalog,
+        IWindowFactory windowFactory)
     {
+        _appSettings = appSettings;
+        _productCatalog = productCatalog;
+        _windowFactory = windowFactory;
+
         InitializeComponent();
         AutomationProperties.SetAutomationId(this, "MainWindow");
         RefreshProductSummary();
@@ -22,7 +34,7 @@ public partial class MainWindow : Window
 
         GreetingTextBox.Text = string.IsNullOrWhiteSpace(name)
             ? "Please enter a name first."
-            : $"{AppSettings.GreetingPrefix}, {name}!";
+            : $"{_appSettings.GreetingPrefix}, {name}!";
     }
 
     private void OpenCatalogButton_Click(object sender, RoutedEventArgs e)
@@ -33,10 +45,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        _catalogWindow = new CatalogWindow
-        {
-            Owner = this,
-        };
+        _catalogWindow = _windowFactory.CreateCatalogWindow();
+        _catalogWindow.Owner = this;
         _catalogWindow.Closed += (_, _) =>
         {
             _catalogWindow = null;
@@ -53,10 +63,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        _settingsWindow = new SettingsWindow
-        {
-            Owner = this,
-        };
+        _settingsWindow = _windowFactory.CreateSettingsWindow();
+        _settingsWindow.Owner = this;
         _settingsWindow.Closed += (_, _) => _settingsWindow = null;
         _settingsWindow.Show();
     }
@@ -69,16 +77,14 @@ public partial class MainWindow : Window
             return;
         }
 
-        _aboutWindow = new AboutWindow
-        {
-            Owner = this,
-        };
+        _aboutWindow = _windowFactory.CreateAboutWindow();
+        _aboutWindow.Owner = this;
         _aboutWindow.Closed += (_, _) => _aboutWindow = null;
         _aboutWindow.Show();
     }
 
     private void RefreshProductSummary()
     {
-        ProductSummaryTextBox.Text = $"Products in catalog: {ProductCatalog.Count}";
+        ProductSummaryTextBox.Text = $"Products in catalog: {_productCatalog.Count}";
     }
 }

@@ -1,18 +1,22 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Automation;
-using System.Windows.Controls;
 using WpfDemo.App.Models;
+using WpfDemo.App.Services;
 
 namespace WpfDemo.App;
 
 public partial class CatalogWindow : Window
 {
-    public CatalogWindow()
+    private readonly IProductCatalogService _productCatalog;
+
+    public CatalogWindow(IProductCatalogService productCatalog)
     {
+        _productCatalog = productCatalog;
+
         InitializeComponent();
         AutomationProperties.SetAutomationId(this, "CatalogWindow");
-        ProductListBox.ItemsSource = ProductCatalog.Products;
+        ProductListBox.ItemsSource = _productCatalog.Products;
     }
 
     private void AddProductButton_Click(object sender, RoutedEventArgs e)
@@ -37,7 +41,7 @@ public partial class CatalogWindow : Window
             Price = price,
         };
 
-        ProductCatalog.Products.Add(product);
+        _productCatalog.Add(product);
         ProductListBox.SelectedItem = product;
         ProductNameTextBox.Clear();
         ProductPriceTextBox.Text = "0.00";
@@ -68,7 +72,7 @@ public partial class CatalogWindow : Window
         var duplicate = product.Clone();
         duplicate.Name = $"{product.Name} (copy)";
 
-        ProductCatalog.Products.Add(duplicate);
+        _productCatalog.Add(duplicate);
         ProductListBox.SelectedItem = duplicate;
         CatalogStatusTextBox.Text = $"Duplicated {product.Name}.";
     }
@@ -81,7 +85,7 @@ public partial class CatalogWindow : Window
             return;
         }
 
-        ProductCatalog.Products.Remove(product);
+        _productCatalog.Remove(product);
         CatalogStatusTextBox.Text = $"Removed {product.Name}.";
     }
 }

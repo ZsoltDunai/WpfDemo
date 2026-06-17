@@ -1,137 +1,90 @@
 using FlaUI.Core.Tools;
+using NUnit.Framework;
 using WpfDemo.E2ETests.Infrastructure;
 
 namespace WpfDemo.E2ETests;
 
-[Collection("WpfDemo")]
+[TestFixture]
+[NonParallelizable]
 public class MultiWindowE2ETests
 {
-    [Fact]
+    [Test]
     public void Saving_settings_updates_greeting_on_main_window()
     {
-        using var fixture = new WpfDemoAppFixture();
-        var mainWindow = fixture.LaunchMainWindow();
-        mainWindow.Focus();
+        using var session = WpfDemoAppSession.Launch();
+        var main = session.OpenMainWindow();
 
-        WindowTestHelpers.ClickButton(mainWindow, "OpenSettingsButton");
-        var settingsWindow = fixture.WaitForWindow("Settings");
-        settingsWindow.Focus();
-
-        var prefixTextBox = WindowTestHelpers.RequireTextBox(settingsWindow, "GreetingPrefixTextBox");
-        prefixTextBox.Focus();
-        prefixTextBox.Text = "Welcome";
-
-        WindowTestHelpers.ClickButton(settingsWindow, "SaveSettingsButton");
-
-        Retry.WhileTrue(
-            () => fixture.FindWindowByTitle("Settings") is not null,
-            TimeSpan.FromSeconds(3));
-
-        Assert.Null(fixture.FindWindowByTitle("Settings"));
-        Assert.NotNull(fixture.FindWindowByTitle("Mini Shop Admin"));
-
-        var nameTextBox = WindowTestHelpers.RequireTextBox(mainWindow, "NameTextBox");
-        nameTextBox.Focus();
-        nameTextBox.Text = "FlaUI";
-        WindowTestHelpers.RequireButton(mainWindow, "GreetButton").Invoke();
+        main.OpenSettings()
+            .SetGreetingPrefix("Welcome")
+            .Save()
+            .SetAdminName("FlaUI")
+            .SayHello();
 
         Retry.WhileFalse(
-            () => WindowTestHelpers.GetTextBoxValue(mainWindow, "GreetingTextBox") == "Welcome, FlaUI!",
+            () => main.Greeting == "Welcome, FlaUI!",
             TimeSpan.FromSeconds(3));
 
-        Assert.Equal("Welcome, FlaUI!", WindowTestHelpers.GetTextBoxValue(mainWindow, "GreetingTextBox"));
+        Assert.That(main.Greeting, Is.EqualTo("Welcome, FlaUI!"));
     }
 
-    [Fact]
+    [Test]
     public void Cancelling_settings_keeps_default_greeting_prefix()
     {
-        using var fixture = new WpfDemoAppFixture();
-        var mainWindow = fixture.LaunchMainWindow();
-        mainWindow.Focus();
+        using var session = WpfDemoAppSession.Launch();
+        var main = session.OpenMainWindow();
 
-        WindowTestHelpers.ClickButton(mainWindow, "OpenSettingsButton");
-        var settingsWindow = fixture.WaitForWindow("Settings");
-        settingsWindow.Focus();
-
-        var prefixTextBox = WindowTestHelpers.RequireTextBox(settingsWindow, "GreetingPrefixTextBox");
-        prefixTextBox.Focus();
-        prefixTextBox.Text = "Changed";
-
-        WindowTestHelpers.ClickButton(settingsWindow, "CancelSettingsButton");
-
-        Retry.WhileTrue(
-            () => fixture.FindWindowByTitle("Settings") is not null,
-            TimeSpan.FromSeconds(3));
-
-        var nameTextBox = WindowTestHelpers.RequireTextBox(mainWindow, "NameTextBox");
-        nameTextBox.Focus();
-        nameTextBox.Text = "Tester";
-        WindowTestHelpers.RequireButton(mainWindow, "GreetButton").Invoke();
+        main.OpenSettings()
+            .SetGreetingPrefix("Changed")
+            .Cancel()
+            .SetAdminName("Tester")
+            .SayHello();
 
         Retry.WhileFalse(
-            () => WindowTestHelpers.GetTextBoxValue(mainWindow, "GreetingTextBox") == "Hello, Tester!",
+            () => main.Greeting == "Hello, Tester!",
             TimeSpan.FromSeconds(3));
 
-        Assert.Equal("Hello, Tester!", WindowTestHelpers.GetTextBoxValue(mainWindow, "GreetingTextBox"));
+        Assert.That(main.Greeting, Is.EqualTo("Hello, Tester!"));
     }
 
-    [Fact]
+    [Test]
     public void About_window_can_be_opened_and_closed_while_main_window_stays_open()
     {
-        using var fixture = new WpfDemoAppFixture();
-        var mainWindow = fixture.LaunchMainWindow();
+        using var session = WpfDemoAppSession.Launch();
+        var main = session.OpenMainWindow();
 
-        WindowTestHelpers.ClickButton(mainWindow, "OpenAboutButton");
-        var aboutWindow = fixture.WaitForWindow("About");
-        aboutWindow.Focus();
+        var about = main.OpenAbout();
 
-        Assert.Contains("Version 1.0.0", WindowTestHelpers.GetTextBoxValue(aboutWindow, "AboutTextBox"));
+        Assert.That(about.AboutText, Does.Contain("Version 1.0.0"));
 
-        WindowTestHelpers.ClickButton(aboutWindow, "CloseAboutButton");
+        about.CloseAbout();
 
-        Retry.WhileTrue(
-            () => fixture.FindWindowByTitle("About") is not null,
-            TimeSpan.FromSeconds(3));
-
-        Assert.Null(fixture.FindWindowByTitle("About"));
-        Assert.NotNull(fixture.FindWindowByTitle("Mini Shop Admin"));
-        Assert.Equal("Mini Shop Admin", mainWindow.Title);
+        Assert.That(session.FindWindowByTitle("About"), Is.Null);
+        Assert.That(session.FindWindowByTitle("Mini Shop Admin"), Is.Not.Null);
+        Assert.That(main.Title, Is.EqualTo("Mini Shop Admin"));
     }
 
-    [Fact]
+    [Test]
     public void Settings_and_about_windows_can_be_open_at_the_same_time()
     {
-        using var fixture = new WpfDemoAppFixture();
-        var mainWindow = fixture.LaunchMainWindow();
-        mainWindow.Focus();
+        using var session = WpfDemoAppSession.Launch();
+        var main = session.OpenMainWindow();
 
-        WindowTestHelpers.ClickButton(mainWindow, "OpenSettingsButton");
-        var settingsWindow = fixture.WaitForWindow("Settings");
-        settingsWindow.Focus();
+        var settings = main.OpenSettings();
+        var about = main.OpenAbout();
 
-        WindowTestHelpers.ClickButton(mainWindow, "OpenAboutButton");
-        var aboutWindow = fixture.WaitForWindow("About");
-        aboutWindow.Focus();
+        Assert.That(settings.Title, Is.EqualTo("Settings"));
+        Assert.That(about.Title, Is.EqualTo("About"));
+        Assert.That(about.AboutText, Does.Contain("end-to-end UI testing"));
 
-        Assert.Equal("Settings", settingsWindow.Title);
-        Assert.Equal("About", aboutWindow.Title);
-        Assert.Contains("end-to-end UI testing", WindowTestHelpers.GetTextBoxValue(aboutWindow, "AboutTextBox"));
+        about.CloseAbout();
 
-        WindowTestHelpers.ClickButton(aboutWindow, "CloseAboutButton");
-        Retry.WhileTrue(
-            () => fixture.FindWindowByTitle("About") is not null,
-            TimeSpan.FromSeconds(3));
+        Assert.That(session.FindWindowByTitle("Settings"), Is.Not.Null);
+        Assert.That(session.FindWindowByTitle("Mini Shop Admin"), Is.Not.Null);
 
-        Assert.NotNull(fixture.FindWindowByTitle("Settings"));
-        Assert.NotNull(fixture.FindWindowByTitle("Mini Shop Admin"));
+        settings.Cancel();
 
-        WindowTestHelpers.ClickButton(settingsWindow, "CancelSettingsButton");
-        Retry.WhileTrue(
-            () => fixture.FindWindowByTitle("Settings") is not null,
-            TimeSpan.FromSeconds(3));
-
-        Assert.Null(fixture.FindWindowByTitle("Settings"));
-        Assert.Null(fixture.FindWindowByTitle("About"));
-        Assert.NotNull(fixture.FindWindowByTitle("Mini Shop Admin"));
+        Assert.That(session.FindWindowByTitle("Settings"), Is.Null);
+        Assert.That(session.FindWindowByTitle("About"), Is.Null);
+        Assert.That(session.FindWindowByTitle("Mini Shop Admin"), Is.Not.Null);
     }
 }

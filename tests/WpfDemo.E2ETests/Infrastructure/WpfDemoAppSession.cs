@@ -4,10 +4,12 @@ using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using FlaUI.Core.Tools;
 using FlaUI.UIA3;
+using NUnit.Framework;
+using WpfDemo.E2ETests.WindowObjects;
 
 namespace WpfDemo.E2ETests.Infrastructure;
 
-public sealed class WpfDemoAppFixture : IDisposable
+public sealed class WpfDemoAppSession : IUiSession, IDisposable
 {
     private static readonly Dictionary<string, string> WindowAutomationIds = new(StringComparer.Ordinal)
     {
@@ -20,20 +22,24 @@ public sealed class WpfDemoAppFixture : IDisposable
     private readonly UIA3Automation _automation = new();
     private Application? _application;
 
+    public UIA3Automation Automation => _automation;
+
     public Application Application => _application
         ?? throw new InvalidOperationException("Launch the application before accessing it.");
 
-    public UIA3Automation Automation => _automation;
-
-    public Window LaunchMainWindow()
+    public static WpfDemoAppSession Launch()
     {
-        var appPath = GetAppExecutablePath();
-        _application = Application.Launch(appPath);
+        var session = new WpfDemoAppSession();
+        session.Start();
+        return session;
+    }
 
-        var mainWindow = _application.GetMainWindow(_automation, TimeSpan.FromSeconds(10));
-        Assert.NotNull(mainWindow);
+    public MainWindowObject OpenMainWindow()
+    {
+        var window = Application.GetMainWindow(_automation, TimeSpan.FromSeconds(10));
+        Assert.That(window, Is.Not.Null);
 
-        return mainWindow;
+        return new MainWindowObject(window!, this);
     }
 
     public Window WaitForWindow(string title, TimeSpan? timeout = null)
@@ -45,8 +51,8 @@ public sealed class WpfDemoAppFixture : IDisposable
             timeout: timeout.Value,
             ignoreException: true);
 
-        Assert.NotNull(result.Result);
-        return result.Result;
+        Assert.That(result.Result, Is.Not.Null);
+        return result.Result!;
     }
 
     public Window? FindWindowByTitle(string title)
@@ -77,6 +83,26 @@ public sealed class WpfDemoAppFixture : IDisposable
         {
             return null;
         }
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            _application?.Close();
+        }
+        catch
+        {
+            _application?.Kill();
+        }
+
+        _automation.Dispose();
+    }
+
+    private void Start()
+    {
+        var appPath = GetAppExecutablePath();
+        _application = Application.Launch(appPath);
     }
 
     private static string GetAutomationIdForTitle(string title)
@@ -138,20 +164,6 @@ public sealed class WpfDemoAppFixture : IDisposable
         }
 
         return null;
-    }
-
-    public void Dispose()
-    {
-        try
-        {
-            _application?.Close();
-        }
-        catch
-        {
-            _application?.Kill();
-        }
-
-        _automation.Dispose();
     }
 
     private static string GetAppExecutablePath()
