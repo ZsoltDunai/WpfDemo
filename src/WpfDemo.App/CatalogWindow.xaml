@@ -1,0 +1,101 @@
+<Window x:Class="WpfDemo.App.CatalogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        AutomationProperties.AutomationId="CatalogWindow"
+        Title="Product Catalog"
+        Height="520"
+        Width="560"
+        MinHeight="460"
+        MinWidth="480"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="Manage catalog products"
+                   FontSize="18"
+                   FontWeight="SemiBold"
+                   Margin="0,0,0,12" />
+
+        <ListBox Grid.Row="1"
+                 x:Name="ProductListBox"
+                 AutomationProperties.AutomationId="ProductListBox"
+                 AutomationProperties.Name="Product list"
+                 DisplayMemberPath="DisplayText"
+                 Margin="0,0,0,12">
+            <ListBox.ContextMenu>
+                <ContextMenu AutomationProperties.AutomationId="ProductContextMenu">
+                    <MenuItem Header="Mark as featured"
+                              AutomationProperties.AutomationId="MarkFeaturedMenuItem"
+                              AutomationProperties.Name="Mark as featured"
+                              Click="MarkFeaturedMenuItem_Click" />
+                    <MenuItem Header="Duplicate"
+                              AutomationProperties.AutomationId="DuplicateProductMenuItem"
+                              AutomationProperties.Name="Duplicate"
+                              Click="DuplicateProductMenuItem_Click" />
+                    <Separator />
+                    <MenuItem Header="Remove"
+                              AutomationProperties.AutomationId="RemoveProductMenuItem"
+                              AutomationProperties.Name="Remove"
+                              Click="RemoveProductMenuItem_Click" />
+                </ContextMenu>
+            </ListBox.ContextMenu>
+        </ListBox>
+
+        <Grid Grid.Row="2" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="120" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Product name" Margin="0,0,0,4" />
+                <TextBox x:Name="ProductNameTextBox"
+                         AutomationProperties.AutomationId="ProductNameTextBox"
+                         AutomationProperties.Name="Product name"
+                         Height="32"
+                         Padding="8,4" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="2">
+                <TextBlock Text="Price" Margin="0,0,0,4" />
+                <TextBox x:Name="ProductPriceTextBox"
+                         AutomationProperties.AutomationId="ProductPriceTextBox"
+                         AutomationProperties.Name="Price"
+                         Height="32"
+                         Padding="8,4"
+                         Text="0.00" />
+            </StackPanel>
+        </Grid>
+
+        <Button Grid.Row="3"
+                AutomationProperties.AutomationId="AddProductButton"
+                AutomationProperties.Name="Add product"
+                Content="Add product"
+                Width="120"
+                Height="36"
+                HorizontalAlignment="Left"
+                Margin="0,0,0,12"
+                Click="AddProductButton_Click" />
+
+        <TextBox Grid.Row="4"
+                 x:Name="CatalogStatusTextBox"
+                 AutomationProperties.AutomationId="CatalogStatusTextBox"
+                 Text="Right-click a product for more actions."
+                 IsReadOnly="True"
+                 BorderThickness="0"
+                 Background="#F3F4F6"
+                 Padding="12,8"
+                 TextWrapping="Wrap" />
+    </Grid>
+</Window>

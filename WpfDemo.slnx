@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WpfDemo.App/WpfDemo.App.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WpfDemo.E2ETests/WpfDemo.E2ETests.csproj" />
+  </Folder>
+</Solution>
