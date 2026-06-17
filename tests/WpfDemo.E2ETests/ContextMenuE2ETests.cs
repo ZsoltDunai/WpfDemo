@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using WpfDemo.E2ETests.TestData;
 
 namespace WpfDemo.E2ETests;
 
@@ -12,10 +13,10 @@ public class ContextMenuE2ETests : E2ETestBase
         var catalog = Main.OpenCatalog();
 
         catalog
-            .RemoveProductViaContextMenu("Mug - $12.00")
-            .WaitUntilProductRemoved("Mug - $12.00");
+            .RemoveProductViaContextMenu(TestProducts.Mug)
+            .WaitUntilProductRemoved(TestProducts.Mug);
 
-        Assert.That(catalog.Products, Does.Not.Contain("Mug - $12.00"));
+        Assert.That(catalog.Products, Does.Not.Contain(TestProducts.Mug));
         Assert.That(catalog.Status, Is.EqualTo("Removed Mug."));
     }
 
@@ -25,10 +26,10 @@ public class ContextMenuE2ETests : E2ETestBase
         var catalog = Main.OpenCatalog();
 
         catalog
-            .DuplicateProductViaContextMenu("Coffee - $4.50")
-            .WaitUntilProductAppears("Coffee (copy) - $4.50", TimeSpan.FromSeconds(5));
+            .DuplicateProductViaContextMenu(TestProducts.Coffee)
+            .WaitUntilProductAppears(TestProducts.CoffeeCopy, UiTimeouts.ContextMenu);
 
-        Assert.That(catalog.Products, Does.Contain("Coffee (copy) - $4.50"));
+        Assert.That(catalog.Products, Does.Contain(TestProducts.CoffeeCopy));
         Assert.That(catalog.Status, Is.EqualTo("Duplicated Coffee."));
     }
 
@@ -38,11 +39,11 @@ public class ContextMenuE2ETests : E2ETestBase
         var catalog = Main.OpenCatalog();
 
         catalog
-            .MarkFeaturedViaContextMenu("Coffee - $4.50")
-            .WaitUntilProductAppears("[Featured] Coffee - $4.50", TimeSpan.FromSeconds(5))
+            .MarkFeaturedViaContextMenu(TestProducts.Coffee)
+            .WaitUntilProductAppears(TestProducts.FeaturedCoffee, UiTimeouts.ContextMenu)
             .WaitUntilStatus("Coffee marked as featured.");
 
-        Assert.That(catalog.Products, Does.Contain("[Featured] Coffee - $4.50"));
+        Assert.That(catalog.Products, Does.Contain(TestProducts.FeaturedCoffee));
         Assert.That(catalog.Status, Is.EqualTo("Coffee marked as featured."));
     }
 }

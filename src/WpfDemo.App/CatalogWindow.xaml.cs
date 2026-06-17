@@ -1,91 +1,120 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Automation;
 using WpfDemo.App.Models;
-using WpfDemo.App.Services;
+using WpfDemo.App.Services.Catalog;
+using WpfDemo.App.Ui;
 
 namespace WpfDemo.App;
 
 public partial class CatalogWindow : Window
 {
     private readonly IProductCatalogService _productCatalog;
+    private readonly IProductInputValidator _productInputValidator;
 
-    public CatalogWindow(IProductCatalogService productCatalog)
+    public CatalogWindow(
+        IProductCatalogService productCatalog,
+        IProductInputValidator productInputValidator)
     {
         _productCatalog = productCatalog;
+        _productInputValidator = productInputValidator;
 
         InitializeComponent();
-        AutomationProperties.SetAutomationId(this, "CatalogWindow");
+        AutomationProperties.SetAutomationId(this, AutomationIds.CatalogWindow);
         ProductListBox.ItemsSource = _productCatalog.Products;
     }
 
     private void AddProductButton_Click(object sender, RoutedEventArgs e)
     {
-        var name = ProductNameTextBox.Text.Trim();
-        if (string.IsNullOrWhiteSpace(name))
+        if (!_productInputValidator.TryParse(
+                ProductNameTextBox.Text,
+                ProductPriceTextBox.Text,
+                out var name,
+                out var price,
+                out var errorMessage))
         {
-            CatalogStatusTextBox.Text = "Enter a product name.";
+            ShowStatus(errorMessage);
             return;
         }
 
-        if (!decimal.TryParse(ProductPriceTextBox.Text.Trim(), NumberStyles.Number, CultureInfo.InvariantCulture, out var price)
-            || price < 0)
-        {
-            CatalogStatusTextBox.Text = "Enter a valid price.";
-            return;
-        }
-
-        var product = new Product
-        {
-            Name = name,
-            Price = price,
-        };
-
-        _productCatalog.Add(product);
-        ProductListBox.SelectedItem = product;
-        ProductNameTextBox.Clear();
-        ProductPriceTextBox.Text = "0.00";
-        CatalogStatusTextBox.Text = $"Added {product.DisplayText}.";
+        var result = _productCatalog.AddProduct(name, price);
+        ApplyResult(result, resetFormOnSuccess: true);
     }
 
     private void MarkFeaturedMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        if (ProductListBox.SelectedItem is not Product product)
+        if (!TryGetSelectedProduct(out var product))
         {
-            CatalogStatusTextBox.Text = "Select a product first.";
             return;
         }
 
-        product.IsFeatured = true;
+        var result = _productCatalog.MarkAsFeatured(product!);
         ProductListBox.Items.Refresh();
-        CatalogStatusTextBox.Text = $"{product.Name} marked as featured.";
+        ApplyResult(result);
     }
 
     private void DuplicateProductMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        if (ProductListBox.SelectedItem is not Product product)
+        if (!TryGetSelectedProduct(out var product))
         {
-            CatalogStatusTextBox.Text = "Select a product first.";
             return;
         }
 
-        var duplicate = product.Clone();
-        duplicate.Name = $"{product.Name} (copy)";
-
-        _productCatalog.Add(duplicate);
-        ProductListBox.SelectedItem = duplicate;
-        CatalogStatusTextBox.Text = $"Duplicated {product.Name}.";
+        var result = _productCatalog.Duplicate(product!);
+        ApplyResult(result);
     }
 
     private void RemoveProductMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        if (ProductListBox.SelectedItem is not Product product)
+        if (!TryGetSelectedProduct(out var product))
         {
-            CatalogStatusTextBox.Text = "Select a product first.";
             return;
         }
 
-        _productCatalog.Remove(product);
-        CatalogStatusTextBox.Text = $"Removed {product.Name}.";
+        var result = _productCatalog.Remove(product!);
+        ApplyResult(result);
+    }
+
+    private void ApplyResult(CatalogOperationResult result, bool resetFormOnSuccess = false)
+    {
+        ShowStatus(result.Message);
+
+        if (!result.Succeeded)
+        {
+            return;
+        }
+
+        if (result.Product is not null)
+        {
+            ProductListBox.SelectedItem = result.Product;
+        }
+
+        if (resetFormOnSuccess)
+        {
+            ResetProductForm();
+        }
+    }
+
+    private void ResetProductForm()
+    {
+        ProductNameTextBox.Clear();
+        ProductPriceTextBox.Text = AppMessages.DefaultProductPrice;
+    }
+
+    private bool TryGetSelectedProduct(out Product? product)
+    {
+        if (ProductListBox.SelectedItem is Product selectedProduct)
+        {
+            product = selectedProduct;
+            return true;
+        }
+
+        product = null;
+        ShowStatus(AppMessages.ProductSelectionRequired);
+        return false;
+    }
+
+    private void ShowStatus(string message)
+    {
+        CatalogStatusTextBox.Text = message;
     }
 }

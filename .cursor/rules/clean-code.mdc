@@ -1,0 +1,26 @@
+---
+description: Clean Code alapelvek a WpfDemo projekthez
+globs: "**/*.{cs,xaml}"
+alwaysApply: false
+---
+
+# Clean Code – WpfDemo
+
+## Elnevezések
+- Olvasható, szándékot kifejező nevek (`GreetAs`, `UpdateGreetingPrefix`, nem `DoStuff`)
+- Magic stringek tilosak: `Ui/AutomationIds`, `Ui/WindowTitles`, `Ui/AppMessages`
+
+## Függvények
+- Egy felelősség, rövid metódusok (kb. 15–20 sor felett bontás)
+- Korai visszatérés (guard clause) mély beágyazás helyett
+- Kicsi, érthető public API; részletek private/helper metódusokban
+
+## Tesztek
+- Arrange – Act – Assert szerkezet
+- Ismétlődő flow POM metódusokban (`GreetAs`, `OpenCatalog`), nem a tesztben
+- Közös setup `E2ETestBase`-ben; konstansok `TestData`-ban
+
+## WPF / FlaUI
+- Ablak- és elemazonosítók egy helyen (`AutomationIds`)
+- Window Object Model: UI interakció csak `WindowObjects/`-ben
+- Ne keverd az assertet az interakciós réteggel, ahol elkerülhető

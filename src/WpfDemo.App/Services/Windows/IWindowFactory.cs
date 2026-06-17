@@ -1,4 +1,4 @@
-namespace WpfDemo.App.Services;
+namespace WpfDemo.App.Services.Windows;
 
 public interface IWindowFactory
 {

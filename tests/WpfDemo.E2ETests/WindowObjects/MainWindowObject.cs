@@ -1,7 +1,8 @@
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Tools;
-using NUnit.Framework;
+using WpfDemo.App.Ui;
 using WpfDemo.E2ETests.Infrastructure;
+using WpfDemo.E2ETests.TestData;
 
 namespace WpfDemo.E2ETests.WindowObjects;
 
@@ -12,19 +13,19 @@ public sealed class MainWindowObject : WindowObjectBase
     {
     }
 
-    public string Greeting => GetTextBoxValue("GreetingTextBox");
+    public string Greeting => GetTextBoxValue(AutomationIds.GreetingTextBox);
 
-    public string ProductSummary => GetTextBoxValue("ProductSummaryTextBox");
+    public string ProductSummary => GetTextBoxValue(AutomationIds.ProductSummaryTextBox);
 
     public MainWindowObject SetAdminName(string name)
     {
-        SetTextBoxValue("NameTextBox", name);
+        SetTextBoxValue(AutomationIds.NameTextBox, name);
         return this;
     }
 
     public MainWindowObject SayHello()
     {
-        ClickButton("GreetButton");
+        ClickButton(AutomationIds.GreetButton);
         return this;
     }
 
@@ -46,44 +47,39 @@ public sealed class MainWindowObject : WindowObjectBase
 
     public MainWindowObject WaitUntilGreeting(string expectedGreeting, TimeSpan? timeout = null)
     {
-        timeout ??= TimeSpan.FromSeconds(3);
-
-        Retry.WhileFalse(
-            () => Greeting == expectedGreeting,
-            timeout.Value);
-
+        WaitUntil(() => Greeting == expectedGreeting, timeout);
         return this;
     }
 
     public MainWindowObject WaitUntilProductSummary(string expectedSummary, TimeSpan? timeout = null)
     {
-        timeout ??= TimeSpan.FromSeconds(3);
-
-        Retry.WhileFalse(
-            () => ProductSummary == expectedSummary,
-            timeout.Value);
-
+        WaitUntil(() => ProductSummary == expectedSummary, timeout);
         return this;
     }
 
     public CatalogWindowObject OpenCatalog()
     {
         Focus();
-        ClickButton("OpenCatalogButton");
-        return new CatalogWindowObject(Session.WaitForWindow("Product Catalog"), Session);
+        ClickButton(AutomationIds.OpenCatalogButton);
+        return new CatalogWindowObject(Session.WaitForWindow(WindowTitles.Catalog), Session);
     }
 
     public SettingsWindowObject OpenSettings()
     {
         Focus();
-        ClickButton("OpenSettingsButton");
-        return new SettingsWindowObject(Session.WaitForWindow("Settings"), Session);
+        ClickButton(AutomationIds.OpenSettingsButton);
+        return new SettingsWindowObject(Session.WaitForWindow(WindowTitles.Settings), Session);
     }
 
     public AboutWindowObject OpenAbout()
     {
         Focus();
-        ClickButton("OpenAboutButton");
-        return new AboutWindowObject(Session.WaitForWindow("About"), Session);
+        ClickButton(AutomationIds.OpenAboutButton);
+        return new AboutWindowObject(Session.WaitForWindow(WindowTitles.About), Session);
+    }
+
+    private static void WaitUntil(Func<bool> condition, TimeSpan? timeout)
+    {
+        Retry.WhileFalse(condition, timeout ?? UiTimeouts.Default);
     }
 }

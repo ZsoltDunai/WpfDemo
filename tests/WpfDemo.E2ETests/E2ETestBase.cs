@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using WpfDemo.App.Ui;
 using WpfDemo.E2ETests.Infrastructure;
 using WpfDemo.E2ETests.WindowObjects;
 
@@ -27,12 +28,16 @@ public abstract class E2ETestBase
 
     protected void AssertWindowClosed(string title)
     {
-        Assert.That(Session.FindWindowByTitle(title), Is.Null);
+        Assert.That(Session.FindWindowByTitle(title), Is.Null, $"Expected window to be closed: {title}");
     }
 
     protected void AssertWindowOpen(string title)
     {
-        Assert.That(Session.FindWindowByTitle(title), Is.Not.Null);
+        Assert.That(Session.FindWindowByTitle(title), Is.Not.Null, $"Expected window to be open: {title}");
+    }
+
+    protected static string FormatProductSummary(int count)
+    {
+        return string.Format(AppMessages.ProductSummaryFormat, count);
     }
 }
-

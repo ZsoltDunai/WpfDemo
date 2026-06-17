@@ -1,90 +1,77 @@
 ﻿using System.Windows;
 using System.Windows.Automation;
-using WpfDemo.App.Services;
+using WpfDemo.App.Presentation;
+using WpfDemo.App.Services.Catalog;
+using WpfDemo.App.Services.Greeting;
+using WpfDemo.App.Services.Windows;
+using WpfDemo.App.Ui;
 
 namespace WpfDemo.App;
 
 public partial class MainWindow : Window
 {
-    private readonly IAppSettingsService _appSettings;
-    private readonly IProductCatalogService _productCatalog;
+    private readonly IGreetingService _greetingService;
+    private readonly IProductCatalogReader _productCatalog;
     private readonly IWindowFactory _windowFactory;
+    private readonly IChildWindowManager _childWindowManager;
 
     private SettingsWindow? _settingsWindow;
     private AboutWindow? _aboutWindow;
     private CatalogWindow? _catalogWindow;
 
     public MainWindow(
-        IAppSettingsService appSettings,
-        IProductCatalogService productCatalog,
-        IWindowFactory windowFactory)
+        IGreetingService greetingService,
+        IProductCatalogReader productCatalog,
+        IWindowFactory windowFactory,
+        IChildWindowManager childWindowManager)
     {
-        _appSettings = appSettings;
+        _greetingService = greetingService;
         _productCatalog = productCatalog;
         _windowFactory = windowFactory;
+        _childWindowManager = childWindowManager;
 
         InitializeComponent();
-        AutomationProperties.SetAutomationId(this, "MainWindow");
+        AutomationProperties.SetAutomationId(this, AutomationIds.MainWindow);
         RefreshProductSummary();
     }
 
     private void GreetButton_Click(object sender, RoutedEventArgs e)
     {
-        var name = NameTextBox.Text.Trim();
-
-        GreetingTextBox.Text = string.IsNullOrWhiteSpace(name)
-            ? "Please enter a name first."
-            : $"{_appSettings.GreetingPrefix}, {name}!";
+        GreetingTextBox.Text = _greetingService.BuildGreeting(NameTextBox.Text.Trim());
     }
 
     private void OpenCatalogButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_catalogWindow is { IsVisible: true })
-        {
-            _catalogWindow.Activate();
-            return;
-        }
-
-        _catalogWindow = _windowFactory.CreateCatalogWindow();
-        _catalogWindow.Owner = this;
-        _catalogWindow.Closed += (_, _) =>
-        {
-            _catalogWindow = null;
-            RefreshProductSummary();
-        };
-        _catalogWindow.Show();
+        _childWindowManager.ShowOrActivate(
+            this,
+            _catalogWindow,
+            window => _catalogWindow = window,
+            _windowFactory.CreateCatalogWindow,
+            RefreshProductSummary);
     }
 
     private void OpenSettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_settingsWindow is { IsVisible: true })
-        {
-            _settingsWindow.Activate();
-            return;
-        }
-
-        _settingsWindow = _windowFactory.CreateSettingsWindow();
-        _settingsWindow.Owner = this;
-        _settingsWindow.Closed += (_, _) => _settingsWindow = null;
-        _settingsWindow.Show();
+        _childWindowManager.ShowOrActivate(
+            this,
+            _settingsWindow,
+            window => _settingsWindow = window,
+            _windowFactory.CreateSettingsWindow);
     }
 
     private void OpenAboutButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_aboutWindow is { IsVisible: true })
-        {
-            _aboutWindow.Activate();
-            return;
-        }
-
-        _aboutWindow = _windowFactory.CreateAboutWindow();
-        _aboutWindow.Owner = this;
-        _aboutWindow.Closed += (_, _) => _aboutWindow = null;
-        _aboutWindow.Show();
+        _childWindowManager.ShowOrActivate(
+            this,
+            _aboutWindow,
+            window => _aboutWindow = window,
+            _windowFactory.CreateAboutWindow);
     }
 
     private void RefreshProductSummary()
     {
-        ProductSummaryTextBox.Text = $"Products in catalog: {_productCatalog.Count}";
+        ProductSummaryTextBox.Text = string.Format(
+            AppMessages.ProductSummaryFormat,
+            _productCatalog.Count);
     }
 }

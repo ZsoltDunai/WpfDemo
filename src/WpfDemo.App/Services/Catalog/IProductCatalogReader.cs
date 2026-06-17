@@ -1,15 +1,11 @@
 using System.Collections.ObjectModel;
 using WpfDemo.App.Models;
 
-namespace WpfDemo.App.Services;
+namespace WpfDemo.App.Services.Catalog;
 
-public interface IProductCatalogService
+public interface IProductCatalogReader
 {
     ObservableCollection<Product> Products { get; }
 
     int Count { get; }
-
-    void Add(Product product);
-
-    void Remove(Product product);
 }

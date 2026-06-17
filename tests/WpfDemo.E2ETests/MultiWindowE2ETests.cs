@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using WpfDemo.App.Ui;
 
 namespace WpfDemo.E2ETests;
 
@@ -9,17 +10,21 @@ public class MultiWindowE2ETests : E2ETestBase
     [Test]
     public void Saving_settings_updates_greeting_on_main_window()
     {
-        Main.UpdateGreetingPrefix("Welcome").GreetAs("FlaUI", "Welcome, FlaUI!");
+        const string expectedGreeting = "Welcome, FlaUI!";
 
-        Assert.That(Main.Greeting, Is.EqualTo("Welcome, FlaUI!"));
+        Main.UpdateGreetingPrefix("Welcome").GreetAs("FlaUI", expectedGreeting);
+
+        Assert.That(Main.Greeting, Is.EqualTo(expectedGreeting));
     }
 
     [Test]
     public void Cancelling_settings_keeps_default_greeting_prefix()
     {
-        Main.UpdateGreetingPrefix("Changed", save: false).GreetAs("Tester", "Hello, Tester!");
+        const string expectedGreeting = "Hello, Tester!";
 
-        Assert.That(Main.Greeting, Is.EqualTo("Hello, Tester!"));
+        Main.UpdateGreetingPrefix("Changed", save: false).GreetAs("Tester", expectedGreeting);
+
+        Assert.That(Main.Greeting, Is.EqualTo(expectedGreeting));
     }
 
     [Test]
@@ -31,9 +36,9 @@ public class MultiWindowE2ETests : E2ETestBase
 
         about.CloseAbout();
 
-        AssertWindowClosed("About");
-        AssertWindowOpen("Mini Shop Admin");
-        Assert.That(Main.Title, Is.EqualTo("Mini Shop Admin"));
+        AssertWindowClosed(WindowTitles.About);
+        AssertWindowOpen(WindowTitles.Main);
+        Assert.That(Main.Title, Is.EqualTo(WindowTitles.Main));
     }
 
     [Test]
@@ -42,19 +47,19 @@ public class MultiWindowE2ETests : E2ETestBase
         var settings = Main.OpenSettings();
         var about = Main.OpenAbout();
 
-        Assert.That(settings.Title, Is.EqualTo("Settings"));
-        Assert.That(about.Title, Is.EqualTo("About"));
+        Assert.That(settings.Title, Is.EqualTo(WindowTitles.Settings));
+        Assert.That(about.Title, Is.EqualTo(WindowTitles.About));
         Assert.That(about.AboutText, Does.Contain("end-to-end UI testing"));
 
         about.CloseAbout();
 
-        AssertWindowOpen("Settings");
-        AssertWindowOpen("Mini Shop Admin");
+        AssertWindowOpen(WindowTitles.Settings);
+        AssertWindowOpen(WindowTitles.Main);
 
         settings.Cancel();
 
-        AssertWindowClosed("Settings");
-        AssertWindowClosed("About");
-        AssertWindowOpen("Mini Shop Admin");
+        AssertWindowClosed(WindowTitles.Settings);
+        AssertWindowClosed(WindowTitles.About);
+        AssertWindowOpen(WindowTitles.Main);
     }
 }

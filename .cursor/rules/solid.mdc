@@ -1,0 +1,25 @@
+---
+description: SOLID elvek a WpfDemo projekthez
+globs: "**/*.{cs,xaml}"
+alwaysApply: false
+---
+
+# SOLID – WpfDemo
+
+## S – Single Responsibility
+- Ablakok csak UI-t kezelnek; üzleti logika `Services/` alatt.
+- FlaUI: indítás, ablakkeresés, POM külön osztályban.
+
+## O – Open/Closed
+- Új katalógus-művelet: bővítsd `IProductCatalogService`-t, ne a code-behind-et.
+- Új ablak: regisztráld DI-ben + `IWindowFactory`.
+
+## L – Liskov Substitution
+- Minden implementáció teljesíti az interfész szerződését (pl. `CatalogOperationResult`).
+
+## I – Interface Segregation
+- `IProductCatalogReader` vs `IProductCatalogService`.
+- `IWindowLocator` vs `IAutomationProvider` a tesztekben.
+
+## D – Dependency Inversion
+- Code-behind és POM csak interfészekre hivatkozzon, ne konkrét osztályokra.

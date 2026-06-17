@@ -1,7 +1,8 @@
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Tools;
-using NUnit.Framework;
+using WpfDemo.App.Ui;
 using WpfDemo.E2ETests.Infrastructure;
+using WpfDemo.E2ETests.TestData;
 
 namespace WpfDemo.E2ETests.WindowObjects;
 
@@ -15,28 +16,32 @@ public sealed class SettingsWindowObject : WindowObjectBase
     public SettingsWindowObject SetGreetingPrefix(string prefix)
     {
         Focus();
-        SetTextBoxValue("GreetingPrefixTextBox", prefix);
+        SetTextBoxValue(AutomationIds.GreetingPrefixTextBox, prefix);
         return this;
     }
 
     public MainWindowObject Save()
     {
-        ClickButton("SaveSettingsButton");
-        WaitUntilClosed();
-        return new MainWindowObject(Session.WaitForWindow("Mini Shop Admin"), Session);
+        ClickButton(AutomationIds.SaveSettingsButton);
+        return CloseAndReturnToMain();
     }
 
     public MainWindowObject Cancel()
     {
-        ClickButton("CancelSettingsButton");
-        WaitUntilClosed();
-        return new MainWindowObject(Session.WaitForWindow("Mini Shop Admin"), Session);
+        ClickButton(AutomationIds.CancelSettingsButton);
+        return CloseAndReturnToMain();
     }
 
-    private void WaitUntilClosed()
+    private MainWindowObject CloseAndReturnToMain()
+    {
+        WaitUntilSettingsClosed();
+        return new MainWindowObject(Session.WaitForWindow(WindowTitles.Main), Session);
+    }
+
+    private void WaitUntilSettingsClosed()
     {
         Retry.WhileTrue(
-            () => Session.FindWindowByTitle("Settings") is not null,
-            TimeSpan.FromSeconds(3));
+            () => Session.FindWindowByTitle(WindowTitles.Settings) is not null,
+            UiTimeouts.Default);
     }
 }

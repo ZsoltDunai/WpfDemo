@@ -1,7 +1,9 @@
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Tools;
 using NUnit.Framework;
+using WpfDemo.App.Ui;
 using WpfDemo.E2ETests.Infrastructure;
+using WpfDemo.E2ETests.TestData;
 
 namespace WpfDemo.E2ETests.WindowObjects;
 
@@ -43,21 +45,21 @@ public abstract class WindowObjectBase
     protected TextBox RequireTextBox(string automationId)
     {
         var textBox = Window.FindFirstDescendant(cf => cf.ByAutomationId(automationId))?.AsTextBox();
-        Assert.That(textBox, Is.Not.Null);
+        Assert.That(textBox, Is.Not.Null, $"TextBox not found: {automationId}");
         return textBox!;
     }
 
     protected Button RequireButton(string automationId)
     {
         var button = Window.FindFirstDescendant(cf => cf.ByAutomationId(automationId))?.AsButton();
-        Assert.That(button, Is.Not.Null);
+        Assert.That(button, Is.Not.Null, $"Button not found: {automationId}");
         return button!;
     }
 
     protected ListBox RequireListBox(string automationId)
     {
         var listBox = Window.FindFirstDescendant(cf => cf.ByAutomationId(automationId))?.AsListBox();
-        Assert.That(listBox, Is.Not.Null);
+        Assert.That(listBox, Is.Not.Null, $"ListBox not found: {automationId}");
         return listBox!;
     }
 
@@ -69,12 +71,7 @@ public abstract class WindowObjectBase
     protected IReadOnlyList<string>? TryGetListItemTexts(string listAutomationId)
     {
         var listBox = Window.FindFirstDescendant(cf => cf.ByAutomationId(listAutomationId))?.AsListBox();
-        if (listBox is null)
-        {
-            return null;
-        }
-
-        return listBox.Items.Select(item => item.Text).ToArray();
+        return listBox?.Items.Select(item => item.Text).ToArray();
     }
 
     protected ListBoxItem RequireListItem(string listAutomationId, string itemText)
@@ -83,7 +80,7 @@ public abstract class WindowObjectBase
             .Items
             .FirstOrDefault(candidate => candidate.Text == itemText);
 
-        Assert.That(item, Is.Not.Null);
+        Assert.That(item, Is.Not.Null, $"List item not found: {itemText}");
         return item!;
     }
 
@@ -91,17 +88,30 @@ public abstract class WindowObjectBase
     {
         target.RightClick();
 
+        var menuItem = WaitForContextMenuItem(menuItemAutomationId);
+        menuItem.Invoke();
+        WaitUntilContextMenuCloses(menuItemAutomationId);
+    }
+
+    private MenuItem WaitForContextMenuItem(string menuItemAutomationId)
+    {
         var result = Retry.WhileNull(
-            () => Session.Automation.GetDesktop().FindFirstDescendant(cf => cf.ByAutomationId(menuItemAutomationId))?.AsMenuItem(),
-            timeout: TimeSpan.FromSeconds(3),
+            () => Session.Automation.GetDesktop()
+                .FindFirstDescendant(cf => cf.ByAutomationId(menuItemAutomationId))?
+                .AsMenuItem(),
+            timeout: UiTimeouts.Default,
             ignoreException: true);
 
-        Assert.That(result.Result, Is.Not.Null);
-        result.Result!.Invoke();
+        Assert.That(result.Result, Is.Not.Null, $"Context menu item not found: {menuItemAutomationId}");
+        return result.Result!;
+    }
 
+    private void WaitUntilContextMenuCloses(string menuItemAutomationId)
+    {
         Retry.WhileTrue(
-            () => Session.Automation.GetDesktop().FindFirstDescendant(cf => cf.ByAutomationId(menuItemAutomationId)) is not null,
-            timeout: TimeSpan.FromSeconds(2),
+            () => Session.Automation.GetDesktop()
+                .FindFirstDescendant(cf => cf.ByAutomationId(menuItemAutomationId)) is not null,
+            timeout: UiTimeouts.Default,
             ignoreException: true);
     }
 }

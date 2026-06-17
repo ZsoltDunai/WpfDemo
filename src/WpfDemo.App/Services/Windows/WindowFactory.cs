@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace WpfDemo.App.Services;
+namespace WpfDemo.App.Services.Windows;
 
 public sealed class WindowFactory : IWindowFactory
 {
